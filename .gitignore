@@ -19,6 +19,7 @@
 .DS_Store
 *.pem
 pre*.md
+/data/*
 
 # debug
 npm-debug.log*
