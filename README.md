@@ -82,11 +82,11 @@ This single command will:
              ▼
 ┌─────────────────────────────────────────┐
 │  FastAPI Backend                         │
-│  ├─ POST /api/py/upload-etf             │
+│  ├─ POST /api/py/v1/etfs                │
 │  │   ├─ Validate CSV format             │
 │  │   ├─ Calculate ETF prices            │
 │  │   └─ Compute top holdings            │
-│  └─ GET /api/py/health                  │
+│  └─ GET /api/py/v1/health               │
 └────────────┬────────────────────────────┘
              ▼
 ┌─────────────────────────────────────────┐
@@ -120,7 +120,7 @@ holding_value_i = weight_i × latest_price_i
 
 ## API Documentation
 
-### `POST /api/py/upload-etf`
+### `POST /api/py/v1/etfs`
 
 **Request**: `multipart/form-data`
 ```

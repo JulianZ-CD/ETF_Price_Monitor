@@ -23,7 +23,7 @@ export interface TopHoldingData {
   holding_value: number;
 }
 
-// API response from upload-etf endpoint
+// API response from POST /api/py/v1/etfs endpoint
 export interface ETFDataResponse {
   status: string;
   table_data: ConstituentData[];
