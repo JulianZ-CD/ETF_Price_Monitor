@@ -5,7 +5,7 @@ Handles weighted sum calculations and top holdings analysis.
 
 import pandas as pd
 from typing import List, Dict, Any
-from .data_loader import DataLoader
+from . import DataLoader
 
 
 class ETFCalculator:

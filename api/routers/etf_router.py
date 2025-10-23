@@ -7,8 +7,7 @@ from fastapi import APIRouter, File, UploadFile, HTTPException
 import pandas as pd
 import io
 from typing import Dict, Any
-from ..services.data_loader import DataLoader
-from ..services.calculator import ETFCalculator
+from api.services import DataLoader, ETFCalculator
 
 # Create router instance with API versioning
 
