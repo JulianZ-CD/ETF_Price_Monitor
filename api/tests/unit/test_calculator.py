@@ -4,9 +4,7 @@ Unit Tests for ETFCalculator Service
 Tests the ETF price calculation logic, latest price retrieval, and top holdings analysis.
 """
 
-import pytest
 import pandas as pd
-from api.services import ETFCalculator
 
 
 class TestETFCalculator:

@@ -4,7 +4,6 @@ Unit Tests for ETFValidator Service
 Tests data validation logic including edge cases and error conditions.
 """
 
-import pytest
 from api.services import ETFValidator
 
 

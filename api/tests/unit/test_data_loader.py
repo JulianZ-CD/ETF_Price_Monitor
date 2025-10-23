@@ -4,7 +4,6 @@ Unit Tests for DataLoader Service
 Tests the data loading functionality, singleton pattern, and data access methods.
 """
 
-import pytest
 import pandas as pd
 from api.services import DataLoader
 
