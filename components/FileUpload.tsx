@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Upload, FileText } from "lucide-react";
+import { API_ENDPOINTS, API_ERRORS } from "@/lib/api-config";
 
 interface FileUploadProps {
   onUploadSuccess: (data: any) => void;
@@ -23,7 +24,7 @@ export function FileUpload({ onUploadSuccess, onUploadError }: FileUploadProps) 
       
       // Validate file type
       if (!selectedFile.name.endsWith('.csv')) {
-        onUploadError('Please select a CSV file');
+        onUploadError(API_ERRORS.INVALID_FILE);
         return;
       }
       
@@ -45,15 +46,20 @@ export function FileUpload({ onUploadSuccess, onUploadError }: FileUploadProps) 
       const formData = new FormData();
       formData.append('file', file);
 
-      // Send to backend API
-      const response = await fetch('http://localhost:8000/api/py/upload-etf', {
+      // Send to backend API using centralized endpoint configuration
+      // Benefits:
+      // - No hardcoded URLs
+      // - Uses Next.js rewrites for proxy
+      // - Easy to update when API changes
+      // - Type-safe endpoint reference
+      const response = await fetch(API_ENDPOINTS.ETF.CREATE_ANALYSIS, {
         method: 'POST',
         body: formData,
       });
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.detail || 'Upload failed');
+        throw new Error(error.detail || API_ERRORS.UPLOAD_FAILED);
       }
 
       const data = await response.json();
@@ -65,7 +71,12 @@ export function FileUpload({ onUploadSuccess, onUploadError }: FileUploadProps) 
         fileInputRef.current.value = '';
       }
     } catch (error) {
-      onUploadError(error instanceof Error ? error.message : 'Upload failed');
+      // Handle different types of errors
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        onUploadError(API_ERRORS.NETWORK_ERROR);
+      } else {
+        onUploadError(error instanceof Error ? error.message : API_ERRORS.UPLOAD_FAILED);
+      }
     } finally {
       setIsUploading(false);
     }

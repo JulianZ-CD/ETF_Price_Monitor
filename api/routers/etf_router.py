@@ -10,18 +10,19 @@ from typing import Dict, Any
 from ..services.data_loader import DataLoader
 from ..services.calculator import ETFCalculator
 
-# Create router instance
-router = APIRouter(prefix="/api/py", tags=["ETF"])
+# Create router instance with API versioning
+
+router = APIRouter(prefix="/api/py/v1", tags=["ETF"])
 
 # Initialize services
 data_loader = DataLoader()
 calculator = ETFCalculator()
 
 
-@router.post("/upload-etf")
-async def upload_etf(file: UploadFile = File(...)) -> Dict[str, Any]:
+@router.post("/etfs")
+async def create_etf_analysis(file: UploadFile = File(...)) -> Dict[str, Any]:
     """
-    Upload an ETF CSV file and return calculated data.
+    Create ETF analysis from uploaded CSV file.
     
     Expected CSV format:
     name,weight
@@ -96,6 +97,8 @@ def health_check():
     """
     return {
         'status': 'healthy',
+        'service': 'etf-api',
+        'version': 'v1',
         'data_loaded': data_loader._prices_df is not None
     }
 
