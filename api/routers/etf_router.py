@@ -7,7 +7,7 @@ from fastapi import APIRouter, File, UploadFile, HTTPException
 import pandas as pd
 import io
 from typing import Dict, Any
-from api.services import DataLoader, ETFCalculator
+from api.services import DataLoader, ETFCalculator, ETFValidator
 
 # Create router instance with API versioning
 
@@ -16,6 +16,7 @@ router = APIRouter(prefix="/api/py/v1", tags=["ETF"])
 # Initialize services
 data_loader = DataLoader()
 calculator = ETFCalculator()
+validator = ETFValidator(tolerance=0.0)  # Strict validation: weights must sum to exactly 1.0
 
 
 @router.post("/etfs")
@@ -58,6 +59,15 @@ async def create_etf_analysis(file: UploadFile = File(...)) -> Dict[str, Any]:
                 constituent['weight'] = float(constituent['weight'])
         except (ValueError, TypeError):
             raise HTTPException(status_code=400, detail="Weights must be numeric values")
+        
+        # Validate ETF data quality
+        available_symbols = data_loader.get_available_symbols()
+        is_valid, errors = validator.validate_all(constituents, available_symbols)
+        
+        if not is_valid:
+            # Return user-friendly error message with all issues
+            error_detail = "ETF data validation failed:\n" + "\n".join(f"- {err}" for err in errors)
+            raise HTTPException(status_code=400, detail=error_detail)
         
         # Calculate ETF data
         # 1. Get table data (constituents with latest prices)
