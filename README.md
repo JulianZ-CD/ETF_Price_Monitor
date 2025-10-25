@@ -256,7 +256,8 @@ ETF_Price_Monitor/
 
 ## Testing
 
-To test the application:
+### Manual Testing
+To test the application manually:
 1. Start the development server with `npm run dev`
 2. Navigate to `http://localhost:3000`
 3. Upload `data/ETF1.csv` or `data/ETF2.csv`
@@ -265,3 +266,16 @@ To test the application:
    - Time series chart shows ETF price from 2017-01-01 to 2017-04-10
    - Top 5 bar chart displays correct holdings sorted by value
    - All charts and tables are interactive
+
+### Automated Backend Tests
+**72 tests** covering all backend functionality (unit + integration tests)
+
+```bash
+# Run all tests
+pytest api/tests/
+
+# Run with coverage report
+pytest api/tests/ --cov=api --cov-report=term
+```
+
+For detailed testing documentation, see [`api/tests/README.md`](api/tests/README.md)
