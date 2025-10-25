@@ -21,7 +21,14 @@ python3 -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
-3. **Install all dependencies and start development servers**
+3. **(Optional) Configure environment variables**
+```bash
+# Copy example file and customize if needed
+cp .env.example .env
+# Edit .env to change settings (e.g., ETF_WEIGHT_TOLERANCE)
+```
+
+4. **Install all dependencies and start development servers**
 ```bash
 npm install
 npm run dev
@@ -33,7 +40,7 @@ This single command will:
 - Start FastAPI backend on port 8000
 - Start Next.js frontend on port 3000
 
-4. **Access the application**
+5. **Access the application**
 - Frontend: [http://localhost:3000](http://localhost:3000)
 - Backend API: [http://localhost:8000/api/py/docs](http://localhost:8000/api/py/docs)
 
@@ -205,6 +212,21 @@ file: ETF[1-2].csv
    - Backend and frontend run on separate ports (development mode)
    - CORS enabled for local development
    - Historical data fits in memory (~100 rows × 40 constituents)
+   - Configuration via environment variables (`.env` file or system env)
+
+---
+
+## Configuration
+
+The backend supports configuration via environment variables. Copy `.env.example` to `.env` and customize:
+
+```bash
+# ETF Validation Settings
+ETF_WEIGHT_TOLERANCE=0.005  # 0.5% tolerance for weight sum validation
+```
+
+**Available Settings:**
+- `ETF_WEIGHT_TOLERANCE` (default: `0.005`): Acceptable deviation for constituent weight sum from 1.0
 
 ---
 
@@ -227,15 +249,21 @@ ETF_Price_Monitor/
 │   └── utils.ts              # Helper functions
 ├── api/                      # FastAPI backend
 │   ├── index.py              # Main FastAPI app
+│   ├── config.py             # Configuration settings
 │   ├── routers/              # API route handlers
 │   │   └── etf_router.py     # ETF endpoints
-│   └── services/             # Business logic
-│       ├── data_loader.py    # Singleton data cache
-│       └── calculator.py     # ETF calculations
+│   ├── services/             # Business logic
+│   │   ├── data_loader.py    # Singleton data cache
+│   │   ├── calculator.py     # ETF calculations
+│   │   └── validator.py      # Data validation
+│   └── tests/                # Backend test suite
+│       ├── unit/             # Unit tests
+│       └── integration/      # Integration tests
 ├── data/                     # Sample data
 │   ├── ETF1.csv              # Sample ETF config
 │   ├── ETF2.csv              # Sample ETF config
 │   └── prices.csv            # Historical prices
+├── .env.example              # Environment variables template
 └── requirements.txt          # Python dependencies
 ```
 

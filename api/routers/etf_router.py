@@ -8,6 +8,7 @@ import pandas as pd
 import io
 from typing import Dict, Any
 from api.services import DataLoader, ETFCalculator, ETFValidator
+from api.config import ETF_WEIGHT_TOLERANCE
 
 # Create router instance with API versioning
 
@@ -16,7 +17,7 @@ router = APIRouter(prefix="/api/py/v1", tags=["ETF"])
 # Initialize services
 data_loader = DataLoader()
 calculator = ETFCalculator()
-validator = ETFValidator(tolerance=0.005)  # Allow ±0.5% deviation for rounding and float precision
+validator = ETFValidator(tolerance=ETF_WEIGHT_TOLERANCE)
 
 
 @router.post("/etfs")
