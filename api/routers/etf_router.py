@@ -16,7 +16,7 @@ router = APIRouter(prefix="/api/py/v1", tags=["ETF"])
 # Initialize services
 data_loader = DataLoader()
 calculator = ETFCalculator()
-validator = ETFValidator(tolerance=0.0)  # Strict validation: weights must sum to exactly 1.0
+validator = ETFValidator(tolerance=0.005)  # Allow ±0.5% deviation for rounding and float precision
 
 
 @router.post("/etfs")

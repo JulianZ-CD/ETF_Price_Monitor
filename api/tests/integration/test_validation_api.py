@@ -215,13 +215,13 @@ class TestEdgeCasesStillWork:
     
     
     def test_exact_sum_required(self, test_client):
-        """Test that weights must sum to exactly 1.0 (strict validation)."""
-        # Sum = 1.015 (1.5% over), with tolerance=0.0 this should be rejected
+        """Test that weights must sum to 1.0 within tolerance."""
+        # Sum = 1.015 (1.5% over), exceeds tolerance=0.005 (0.5%), should be rejected
         csv_content = "name,weight\nA,0.505\nB,0.51"
         files = {'file': ('invalid.csv', io.BytesIO(csv_content.encode()), 'text/csv')}
         
         response = test_client.post('/api/py/v1/etfs', files=files)
         
-        # Should fail with strict validation (tolerance=0.0)
+        # Should fail - 1.5% deviation exceeds 0.5% tolerance
         assert response.status_code == 400
 

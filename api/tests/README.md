@@ -132,7 +132,7 @@ pytest api/tests/ --cov=api --cov-report=html
 
 ### Problems Found & Fixed
 1. ✅ **Unknown symbols**: Now rejected with clear error (was just logged)
-2. ✅ **Invalid weights**: Sum must equal 1.0 (was accepted silently)
+2. ✅ **Invalid weights**: Sum must equal 1.0 ±0.5% (was accepted silently)
 3. ✅ **Weight range**: Must be 0-1 (negative/over 1 now rejected)
 4. ✅ **Empty data**: Now explicitly rejected (was returning zeros)
 
@@ -140,7 +140,7 @@ pytest api/tests/ --cov=api --cov-report=html
 - `ETFValidator` service for comprehensive data quality checks
 - API-layer validation before processing
 - Clear, actionable error messages
-- Configurable tolerance (default: strict 0.0)
+- Configurable tolerance (default: 0.5% for floating-point precision)
 
 ---
 

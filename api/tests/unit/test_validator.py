@@ -58,14 +58,14 @@ class TestWeightSumValidation:
         """Test that weights summing to more than 1.0 fail validation."""
         validator = ETFValidator(tolerance=0.0)  # Strict: must be exactly 1.0
         constituents = [
-            {'name': 'A', 'weight': 0.6},
-            {'name': 'B', 'weight': 0.5}  # Sum = 1.1, 110%!
+            {'name': 'A', 'weight': 0.5},
+            {'name': 'B', 'weight': 0.51}  # Sum = 1.01, 101%!
         ]
         
         is_valid, error_msg = validator.validate_weights_sum(constituents)
         
         assert not is_valid, "Should fail with 110% total"
-        assert "1.1" in error_msg
+        assert "1.01" in error_msg
 
 
 class TestWeightRangeValidation:

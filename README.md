@@ -184,8 +184,9 @@ file: ETF[1-2].csv
 ## Assumptions
 
 1. **Data Quality**
-   - All constituents in `ETF[1-2].csv` have corresponding price data in `prices.csv`
+   - All constituents in `ETF[1-2].csv` must have corresponding price data in `prices.csv`
    - Date columns are properly formatted (`YYYY-MM-DD`)
+   - ETF constituent weights must sum to 1.0 (±0.5% tolerance for floating-point precision)
 
 2. **Business Logic**
    - ETF weights remain constant over the entire time period
@@ -195,7 +196,10 @@ file: ETF[1-2].csv
 3. **Scope**
    - Single user, no authentication required
    - No data persistence (stateless application)
-   - CSV files are well-formed and trusted input
+   - CSV files undergo validation:
+     - Weights must be in range [0, 1]
+     - Weights must sum to 1.0 (±0.5% tolerance)
+     - All symbols must exist in price data
 
 4. **Technical**
    - Backend and frontend run on separate ports (development mode)
