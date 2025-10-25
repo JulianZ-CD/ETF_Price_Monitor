@@ -21,7 +21,14 @@ python3 -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
-3. **Install all dependencies and start development servers**
+3. **(Optional) Configure environment variables**
+```bash
+# Copy example file and customize if needed
+cp .env.example .env
+# Edit .env to change settings (e.g., ETF_WEIGHT_TOLERANCE)
+```
+
+4. **Install all dependencies and start development servers**
 ```bash
 npm install
 npm run dev
@@ -33,7 +40,7 @@ This single command will:
 - Start FastAPI backend on port 8000
 - Start Next.js frontend on port 3000
 
-4. **Access the application**
+5. **Access the application**
 - Frontend: [http://localhost:3000](http://localhost:3000)
 - Backend API: [http://localhost:8000/api/py/docs](http://localhost:8000/api/py/docs)
 
@@ -68,38 +75,49 @@ This single command will:
 - **Pandas** - Data manipulation and analysis
 - **Uvicorn** - ASGI server for FastAPI
 
-### System Design
+### System Architecture
 
+```mermaid
+graph TD
+    %% Frontend Layer
+    subgraph Frontend[Frontend - Next.js]
+        A[Client Application]
+        subgraph UI[UI Components]
+            A1[FileUpload]
+            A2[ETFTable]
+            A3[TimeSeriesChart]
+            A4[TopHoldingsChart]
+        end
+        A --- UI
+    end
+
+    %% Backend Layer
+    subgraph Backend[Backend - FastAPI]
+        B[API Router]
+        subgraph Services[Service Layer]
+            C1[ETFDataParser<br/>Format Validation]
+            C2[ETFValidator<br/>Business Rules]
+            C3[ETFCalculator<br/>Price Calculation]
+        end
+        D[DataLoader<br/>Singleton Cache]
+    end
+
+    %% Data Layer
+    subgraph Data[Data Storage]
+        E1[(prices.csv<br/>Historical Data)]
+        E2[(ETF CSV<br/>User Upload)]
+    end
+
+    %% Connections
+    E2 -->|Upload| Frontend
+    Frontend -->|HTTP POST| B
+    B -->|1. Parse & Validate| C1
+    C1 -->|2. Validate Rules| C2
+    C2 -->|3. Calculate| C3
+    C3 -->|Query Data| D
+    D -->|Load at Startup| E1
+    B -->|JSON Response| Frontend
 ```
-┌─────────────────────────────────────────┐
-│  Browser (Next.js Frontend)             │
-│  ├─ FileUpload Component                │
-│  ├─ ETFTable (sortable, paginated)      │
-│  ├─ TimeSeriesChart (zoomable)          │
-│  └─ TopHoldingsChart                    │
-└────────────┬────────────────────────────┘
-             │ HTTP/REST
-             ▼
-┌─────────────────────────────────────────┐
-│  FastAPI Backend                         │
-│  ├─ POST /api/py/v1/etfs                │
-│  │   ├─ Validate CSV format             │
-│  │   ├─ Calculate ETF prices            │
-│  │   └─ Compute top holdings            │
-│  └─ GET /api/py/v1/health               │
-└────────────┬────────────────────────────┘
-             ▼
-┌─────────────────────────────────────────┐
-│  Data Layer (Pandas)                     │
-│  ├─ prices.csv (cached at startup)      │
-│  ├─ ETF calculation service             │
-│  └─ Historical price lookup             │
-└─────────────────────────────────────────┘
-```
-
----
-
-## Core Logic
 
 ### ETF Price Calculation
 ```
@@ -115,45 +133,6 @@ holding_value_i = weight_i × latest_price_i
 - **Forward-fill** missing prices with last known value
 - **Backward-fill** any remaining leading NaN values
 - Constituents matched by symbol name across datasets
-
----
-
-## API Documentation
-
-### `POST /api/py/v1/etfs`
-
-**Request**: `multipart/form-data`
-```
-file: ETF[1-2].csv
-```
-
-**Response**: `application/json`
-```json
-{
-  "status": "success",
-  "table_data": [
-    {
-      "symbol": "A",
-      "weight": 0.02,
-      "latest_price": 20.05
-    }
-  ],
-  "time_series": [
-    {
-      "date": "2017-01-01",
-      "price": 150.23
-    }
-  ],
-  "top_holdings": [
-    {
-      "symbol": "B",
-      "weight": 0.15,
-      "latest_price": 50.25,
-      "holding_value": 7.5375
-    }
-  ]
-}
-```
 
 ---
 
@@ -183,24 +162,56 @@ file: ETF[1-2].csv
 
 ## Assumptions
 
-1. **Data Quality**
-   - All constituents in `ETF[1-2].csv` have corresponding price data in `prices.csv`
-   - Date columns are properly formatted (`YYYY-MM-DD`)
+### 1. Data Quality (About Provided Data)
+We assume the provided `prices.csv` data is:
+- **Complete**: All dates have price data for all constituents (no missing values)
+- **Accurate**: Historical prices are correct and verified
+- **Well-formatted**: DATE column uses `YYYY-MM-DD` format consistently
+- **Type-safe**: All price values are valid numeric types
 
-2. **Business Logic**
-   - ETF weights remain constant over the entire time period
-   - Holding value = weight × latest closing price (not market cap)
-   - "Latest price" refers to the most recent date in `prices.csv`
+### 2. Business Logic
+- **Static Weights**: ETF constituent weights remain constant over the entire time period
+- **Holding Value Calculation**: Holding value = weight × latest closing price (not market capitalization)
+- **Latest Price Definition**: "Latest price" refers to the most recent date available in `prices.csv`
+- **ETF Price Formula**: ETF price = Σ(constituent_price × weight) for all constituents
 
-3. **Scope**
-   - Single user, no authentication required
-   - No data persistence (stateless application)
-   - CSV files are well-formed and trusted input
+### 3. Input Validation (What We Verify)
+The application validates all uploaded CSV files to ensure data integrity:
 
-4. **Technical**
-   - Backend and frontend run on separate ports (development mode)
-   - CORS enabled for local development
-   - Historical data fits in memory (~100 rows × 40 constituents)
+**Format Validation:**
+- CSV must contain exactly two required columns: `name` and `weight`
+- Column names must be unique (no duplicate headers)
+- File must not be empty
+
+**Business Rule Validation:**
+- Weights must be numeric values in range [0, 1]
+- Total weight must sum to 1.0 (±0.5% tolerance for floating-point precision)
+- All constituent symbols must exist in the historical price data
+- Constituent symbols must be unique (no duplicate holdings)
+
+### 4. Scope & Technical Constraints
+- **Single User**: No authentication or multi-user support required
+- **Stateless**: No data persistence; all data held in memory during session
+- **Development Mode**: Backend (port 8000) and frontend (port 3000) run separately
+- **CORS Enabled**: Cross-origin requests allowed for local development
+- **Memory Assumption**: Historical data size (~100 rows × 40 constituents) fits comfortably in memory
+- **Configuration**: Runtime settings managed via environment variables (`.env` files or system environment)
+
+---
+
+## Configuration
+
+The backend supports configuration via environment variables. Create `.env.dev` (development) or `.env.prod` (production):
+
+```bash
+# Copy example and customize
+cp .env.example .env.dev
+
+# Available settings
+ETF_WEIGHT_TOLERANCE=0.005  # Weight sum tolerance (default: 0.5%)
+```
+
+**Priority:** `ENV_FILE` env var → `.env.dev` → `.env.prod` → `.env` → defaults
 
 ---
 
@@ -223,15 +234,23 @@ ETF_Price_Monitor/
 │   └── utils.ts              # Helper functions
 ├── api/                      # FastAPI backend
 │   ├── index.py              # Main FastAPI app
+│   ├── config.py             # Configuration settings
 │   ├── routers/              # API route handlers
 │   │   └── etf_router.py     # ETF endpoints
-│   └── services/             # Business logic
-│       ├── data_loader.py    # Singleton data cache
-│       └── calculator.py     # ETF calculations
+│   ├── services/             # Business logic
+│   │   ├── data_loader.py    # Singleton data cache
+│   │   ├── calculator.py     # ETF calculations
+│   │   └── validator.py      # Data validation
+│   ├── utils/                # Utility modules
+│   │   └── logger.py         # Logging utilities
+│   └── tests/                # Backend test suite
+│       ├── unit/             # Unit tests
+│       └── integration/      # Integration tests
 ├── data/                     # Sample data
 │   ├── ETF1.csv              # Sample ETF config
 │   ├── ETF2.csv              # Sample ETF config
 │   └── prices.csv            # Historical prices
+├── .env.example              # Environment variables template
 └── requirements.txt          # Python dependencies
 ```
 
@@ -256,7 +275,8 @@ ETF_Price_Monitor/
 
 ## Testing
 
-To test the application:
+### Manual Testing
+To test the application manually:
 1. Start the development server with `npm run dev`
 2. Navigate to `http://localhost:3000`
 3. Upload `data/ETF1.csv` or `data/ETF2.csv`
@@ -265,3 +285,16 @@ To test the application:
    - Time series chart shows ETF price from 2017-01-01 to 2017-04-10
    - Top 5 bar chart displays correct holdings sorted by value
    - All charts and tables are interactive
+
+### Automated Backend Tests
+**99% coverage**: covering all backend functionality (unit + integration tests)
+
+```bash
+# Run all tests
+pytest api/tests/
+
+# Run with coverage report
+pytest api/tests/ --cov=api --cov-report=term
+```
+
+For detailed testing documentation, see [`api/tests/README.md`](api/tests/README.md)

@@ -5,7 +5,7 @@ import { FileUpload } from "@/components/FileUpload";
 import { ETFTable } from "@/components/ETFTable";
 import { TimeSeriesChart } from "@/components/TimeSeriesChart";
 import { TopHoldingsChart } from "@/components/TopHoldingsChart";
-import { ETFDataResponse } from "@/lib/types";
+import { ETFDataResponse } from "@/app/lib/types";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, CheckCircle2, Upload } from "lucide-react";
 

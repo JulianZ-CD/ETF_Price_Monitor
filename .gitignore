@@ -7,6 +7,8 @@
 
 # testing
 /coverage
+/htmlcov
+.coverage
 
 # next.js
 /.next/
@@ -19,7 +21,6 @@
 .DS_Store
 *.pem
 pre*.md
-/data/*
 
 # debug
 npm-debug.log*
@@ -27,7 +28,8 @@ yarn-debug.log*
 yarn-error.log*
 
 # local env files
-.env*.local
+.env*
+!.env.example
 
 # vercel
 .vercel
@@ -39,3 +41,4 @@ next-env.d.ts
 # python
 __pycache__/
 venv
+logs/

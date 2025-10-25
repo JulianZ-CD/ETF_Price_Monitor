@@ -1,6 +1,6 @@
 "use client";
 
-import { TimeSeriesData } from "@/lib/types";
+import { TimeSeriesData } from "@/app/lib/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Brush } from 'recharts';

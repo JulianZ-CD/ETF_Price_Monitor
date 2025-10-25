@@ -4,11 +4,12 @@ This module contains endpoints for uploading ETF files and retrieving ETF data.
 """
 
 from fastapi import APIRouter, File, UploadFile, HTTPException
-import pandas as pd
-import io
 from typing import Dict, Any
-from ..services.data_loader import DataLoader
-from ..services.calculator import ETFCalculator
+from api.services import DataLoader, ETFCalculator, ETFValidator, ETFDataParser
+from api.utils.config import ETF_WEIGHT_TOLERANCE
+from api.utils.logger import setup_logger
+
+logger = setup_logger(__name__)
 
 # Create router instance with API versioning
 
@@ -17,6 +18,8 @@ router = APIRouter(prefix="/api/py/v1", tags=["ETF"])
 # Initialize services
 data_loader = DataLoader()
 calculator = ETFCalculator()
+validator = ETFValidator(tolerance=ETF_WEIGHT_TOLERANCE)
+parser = ETFDataParser()
 
 
 @router.post("/etfs")
@@ -34,37 +37,27 @@ async def create_etf_analysis(file: UploadFile = File(...)) -> Dict[str, Any]:
         Dict containing table_data, time_series, and top_holdings
     """
     try:
-        # Read the uploaded file
-        contents = await file.read()
-        
-        # Parse CSV file
+        # Step 1: Parse and validate file format
+        content = await file.read()
         try:
-            etf_df = pd.read_csv(io.StringIO(contents.decode('utf-8')))
-        except Exception as e:
-            raise HTTPException(status_code=400, detail=f"Invalid CSV format: {str(e)}")
+            constituents = parser.parse_csv_file(content, file.filename)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
         
-        # Validate required columns
-        if 'name' not in etf_df.columns or 'weight' not in etf_df.columns:
-            raise HTTPException(
-                status_code=400, 
-                detail="CSV must contain 'name' and 'weight' columns"
-            )
+        # Step 2: Validate business rules
+        available_symbols = data_loader.get_available_symbols()
+        is_valid, errors = validator.validate_all(constituents, available_symbols)
         
-        # Convert DataFrame to list of dicts
-        constituents = etf_df.to_dict('records')
+        if not is_valid:
+            logger.warning(f"ETF validation failed with {len(errors)} error(s): {errors}")
+            error_detail = "ETF data validation failed:\n" + "\n".join(f"- {err}" for err in errors)
+            raise HTTPException(status_code=400, detail=error_detail)
         
-        # Validate that weights are numeric
-        try:
-            for constituent in constituents:
-                constituent['weight'] = float(constituent['weight'])
-        except (ValueError, TypeError):
-            raise HTTPException(status_code=400, detail="Weights must be numeric values")
-        
-        # Calculate ETF data
-        # 1. Get table data (constituents with latest prices)
+        # Step 3: Calculate ETF data
+        # Get table data (constituents with latest prices)
         table_data = calculator.get_latest_prices(constituents)
         
-        # 2. Calculate time series (historical ETF prices)
+        # Calculate time series (historical ETF prices)
         etf_prices_df = calculator.calculate_etf_prices(constituents)
         time_series = [
             {
@@ -74,8 +67,10 @@ async def create_etf_analysis(file: UploadFile = File(...)) -> Dict[str, Any]:
             for _, row in etf_prices_df.iterrows()
         ]
         
-        # 3. Calculate top 5 holdings
+        # Calculate top 5 holdings
         top_holdings = calculator.get_top_holdings(constituents, top_n=5)
+        
+        logger.info(f"ETF analysis completed: {len(constituents)} constituents, {len(time_series)} data points")
         
         return {
             'status': 'success',
@@ -87,6 +82,7 @@ async def create_etf_analysis(file: UploadFile = File(...)) -> Dict[str, Any]:
     except HTTPException:
         raise
     except Exception as e:
+        logger.error(f"Unexpected error in ETF analysis: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Upload, FileText } from "lucide-react";
-import { API_ENDPOINTS, API_ERRORS } from "@/lib/api-config";
+import { API_ENDPOINTS, API_ERRORS } from "@/app/lib/api-config";
 
 interface FileUploadProps {
   onUploadSuccess: (data: any) => void;
