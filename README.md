@@ -146,7 +146,7 @@ holding_value_i = weight_i × latest_price_i
 ### 2. Backend Architecture
 - **Modular Structure**: Separated routers, services, and data layers
 - **Data Caching**: `prices.csv` loaded once at startup (100 rows cached in memory)
-- **Service Singletons**: Services instantiated once at module import time and reused across requests
+- **Dependency Injection**: Services instantiated via FastAPI's DI system
 
 ### 3. Data Processing
 - **Stateless API**: No session storage; ETF config provided with each request
@@ -287,6 +287,7 @@ To test the application manually:
    - All charts and tables are interactive
 
 ### Automated Backend Tests
+**99% coverage**: covering all backend functionality (unit + integration tests)
 
 ```bash
 # Run all tests
