@@ -190,29 +190,40 @@ file: ETF[1-2].csv
 
 ## Assumptions
 
-1. **Data Quality**
-   - All constituents in `ETF[1-2].csv` must have corresponding price data in `prices.csv`
-   - Date columns are properly formatted (`YYYY-MM-DD`)
-   - ETF constituent weights must sum to 1.0 (±0.5% tolerance for floating-point precision)
+### 1. Data Quality (About Provided Data)
+We assume the provided `prices.csv` data is:
+- **Complete**: All dates have price data for all constituents (no missing values)
+- **Accurate**: Historical prices are correct and verified
+- **Well-formatted**: DATE column uses `YYYY-MM-DD` format consistently
+- **Type-safe**: All price values are valid numeric types
 
-2. **Business Logic**
-   - ETF weights remain constant over the entire time period
-   - Holding value = weight × latest closing price (not market cap)
-   - "Latest price" refers to the most recent date in `prices.csv`
+### 2. Business Logic
+- **Static Weights**: ETF constituent weights remain constant over the entire time period
+- **Holding Value Calculation**: Holding value = weight × latest closing price (not market capitalization)
+- **Latest Price Definition**: "Latest price" refers to the most recent date available in `prices.csv`
+- **ETF Price Formula**: ETF price = Σ(constituent_price × weight) for all constituents
 
-3. **Scope**
-   - Single user, no authentication required
-   - No data persistence (stateless application)
-   - CSV files undergo validation:
-     - Weights must be in range [0, 1]
-     - Weights must sum to 1.0 (±0.5% tolerance)
-     - All symbols must exist in price data
+### 3. Input Validation (What We Verify)
+The application validates all uploaded CSV files to ensure data integrity:
 
-4. **Technical**
-   - Backend and frontend run on separate ports (development mode)
-   - CORS enabled for local development
-   - Historical data fits in memory (~100 rows × 40 constituents)
-   - Configuration via environment variables (`.env` file or system env)
+**Format Validation:**
+- CSV must contain exactly two required columns: `name` and `weight`
+- Column names must be unique (no duplicate headers)
+- File must not be empty
+
+**Business Rule Validation:**
+- Weights must be numeric values in range [0, 1]
+- Total weight must sum to 1.0 (±0.5% tolerance for floating-point precision)
+- All constituent symbols must exist in the historical price data
+- Constituent symbols must be unique (no duplicate holdings)
+
+### 4. Scope & Technical Constraints
+- **Single User**: No authentication or multi-user support required
+- **Stateless**: No data persistence; all data held in memory during session
+- **Development Mode**: Backend (port 8000) and frontend (port 3000) run separately
+- **CORS Enabled**: Cross-origin requests allowed for local development
+- **Memory Assumption**: Historical data size (~100 rows × 40 constituents) fits comfortably in memory
+- **Configuration**: Runtime settings managed via environment variables (`.env` files or system environment)
 
 ---
 
