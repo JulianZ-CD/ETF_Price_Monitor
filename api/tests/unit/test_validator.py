@@ -193,6 +193,70 @@ class TestSymbolExistenceValidation:
         assert len(missing) == 2
 
 
+class TestDuplicateValidation:
+    """Test duplicate symbol validation."""
+    
+    def test_no_duplicates(self):
+        """Test that unique symbols pass validation."""
+        validator = ETFValidator()
+        constituents = [
+            {'name': 'A', 'weight': 0.3},
+            {'name': 'B', 'weight': 0.4},
+            {'name': 'C', 'weight': 0.3}
+        ]
+        
+        is_valid, error_msg = validator.validate_no_duplicates(constituents)
+        
+        assert is_valid
+        assert error_msg == ""
+    
+    def test_single_duplicate(self):
+        """Test that single duplicate symbol is detected."""
+        validator = ETFValidator()
+        constituents = [
+            {'name': 'A', 'weight': 0.3},
+            {'name': 'B', 'weight': 0.4},
+            {'name': 'A', 'weight': 0.3}  # Duplicate
+        ]
+        
+        is_valid, error_msg = validator.validate_no_duplicates(constituents)
+        
+        assert not is_valid
+        assert "Duplicate symbols found: A" in error_msg
+    
+    def test_multiple_duplicates(self):
+        """Test that multiple duplicate symbols are detected."""
+        validator = ETFValidator()
+        constituents = [
+            {'name': 'A', 'weight': 0.2},
+            {'name': 'B', 'weight': 0.2},
+            {'name': 'A', 'weight': 0.2},  # Duplicate A
+            {'name': 'C', 'weight': 0.2},
+            {'name': 'B', 'weight': 0.2}   # Duplicate B
+        ]
+        
+        is_valid, error_msg = validator.validate_no_duplicates(constituents)
+        
+        assert not is_valid
+        assert "Duplicate symbols found" in error_msg
+        assert "A" in error_msg
+        assert "B" in error_msg
+    
+    def test_triple_duplicate(self):
+        """Test that symbol appearing three times is detected."""
+        validator = ETFValidator()
+        constituents = [
+            {'name': 'A', 'weight': 0.33},
+            {'name': 'A', 'weight': 0.33},
+            {'name': 'A', 'weight': 0.34}
+        ]
+        
+        is_valid, error_msg = validator.validate_no_duplicates(constituents)
+        
+        assert not is_valid
+        assert "A" in error_msg
+
+
 class TestNonEmptyValidation:
     """Test non-empty constituents validation."""
     
@@ -234,6 +298,22 @@ class TestValidateAll:
         
         assert is_valid
         assert len(errors) == 0
+    
+    def test_duplicate_symbols_detected(self):
+        """Test that duplicate symbols are caught in validate_all."""
+        validator = ETFValidator(tolerance=0.0)
+        constituents = [
+            {'name': 'A', 'weight': 0.5},
+            {'name': 'A', 'weight': 0.5}  # Duplicate
+        ]
+        available_symbols = ['A', 'B']
+        
+        is_valid, errors = validator.validate_all(constituents, available_symbols)
+        
+        assert not is_valid
+        assert len(errors) >= 1
+        # Should detect duplicate
+        assert any('Duplicate' in err for err in errors)
     
     
     def test_multiple_validation_failures(self):

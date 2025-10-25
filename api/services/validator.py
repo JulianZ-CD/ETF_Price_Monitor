@@ -142,6 +142,40 @@ class ETFValidator:
         
         return (True, "")
     
+    def validate_no_duplicates(self, constituents: List[Dict[str, Any]]) -> Tuple[bool, str]:
+        """
+        Validate that there are no duplicate symbols.
+        
+        Why this matters:
+        - Duplicate symbols lead to incorrect weight calculations
+        - Each constituent should appear only once
+        
+        Args:
+            constituents: List of dicts with 'name' key
+            
+        Returns:
+            Tuple of (is_valid, error_message)
+            - (True, "") if no duplicates
+            - (False, "error message") if duplicates found
+        """
+        symbols = [c['name'] for c in constituents]
+        seen = set()
+        duplicates = set()
+        
+        for symbol in symbols:
+            if symbol in seen:
+                duplicates.add(symbol)
+            seen.add(symbol)
+        
+        if duplicates:
+            dup_list = sorted(list(duplicates))
+            return (
+                False,
+                f"Duplicate symbols found: {', '.join(dup_list)}"
+            )
+        
+        return (True, "")
+    
     def validate_all(
         self, 
         constituents: List[Dict[str, Any]], 
@@ -175,17 +209,22 @@ class ETFValidator:
             errors.append(msg)
             return (False, errors)  # No point continuing if empty
         
-        # Check 2: Weight ranges
+        # Check 2: No duplicates
+        valid, msg = self.validate_no_duplicates(constituents)
+        if not valid:
+            errors.append(msg)
+        
+        # Check 3: Weight ranges
         valid, msg = self.validate_weight_ranges(constituents)
         if not valid:
             errors.append(msg)
         
-        # Check 3: Weight sum
+        # Check 4: Weight sum
         valid, msg = self.validate_weights_sum(constituents)
         if not valid:
             errors.append(msg)
         
-        # Check 4: Symbol existence
+        # Check 5: Symbol existence
         valid, msg, _ = self.validate_symbols_exist(constituents, available_symbols)
         if not valid:
             errors.append(msg)

@@ -111,6 +111,22 @@ class TestSymbolValidation:
         response = test_client.post('/api/py/v1/etfs', files=files)
         
         assert response.status_code == 200
+    
+    def test_duplicate_symbol_rejected(self, test_client):
+        """Test that ETF with duplicate symbols is rejected."""
+        # Create CSV with duplicate symbols
+        csv_content = "name,weight\nA,0.3\nB,0.4\nA,0.3"
+        files = {'file': ('duplicate.csv', io.BytesIO(csv_content.encode()), 'text/csv')}
+        
+        response = test_client.post('/api/py/v1/etfs', files=files)
+        
+        # Should fail with 400
+        assert response.status_code == 400
+        
+        # Error message should mention duplicates
+        error_detail = response.json()['detail']
+        assert 'duplicate' in error_detail.lower()
+        assert 'A' in error_detail  # Should mention which symbol is duplicated
 
 
 class TestEmptyDataValidation:
