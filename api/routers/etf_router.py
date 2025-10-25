@@ -9,6 +9,9 @@ import io
 from typing import Dict, Any
 from api.services import DataLoader, ETFCalculator, ETFValidator
 from api.utils.config import ETF_WEIGHT_TOLERANCE
+from api.utils.logger import setup_logger
+
+logger = setup_logger(__name__)
 
 # Create router instance with API versioning
 
@@ -37,15 +40,19 @@ async def create_etf_analysis(file: UploadFile = File(...)) -> Dict[str, Any]:
     try:
         # Read the uploaded file
         contents = await file.read()
+        logger.info(f"Received ETF file upload: {file.filename} ({len(contents)} bytes)")
         
         # Parse CSV file
         try:
             etf_df = pd.read_csv(io.StringIO(contents.decode('utf-8')))
+            logger.debug(f"Parsed CSV with {len(etf_df)} constituents")
         except Exception as e:
+            logger.error(f"CSV parsing failed: {str(e)}")
             raise HTTPException(status_code=400, detail=f"Invalid CSV format: {str(e)}")
         
         # Validate required columns
         if 'name' not in etf_df.columns or 'weight' not in etf_df.columns:
+            logger.warning(f"Missing required columns. Found: {list(etf_df.columns)}")
             raise HTTPException(
                 status_code=400, 
                 detail="CSV must contain 'name' and 'weight' columns"
@@ -58,7 +65,8 @@ async def create_etf_analysis(file: UploadFile = File(...)) -> Dict[str, Any]:
         try:
             for constituent in constituents:
                 constituent['weight'] = float(constituent['weight'])
-        except (ValueError, TypeError):
+        except (ValueError, TypeError) as e:
+            logger.warning(f"Invalid weight value: {str(e)}")
             raise HTTPException(status_code=400, detail="Weights must be numeric values")
         
         # Validate ETF data quality
@@ -66,6 +74,7 @@ async def create_etf_analysis(file: UploadFile = File(...)) -> Dict[str, Any]:
         is_valid, errors = validator.validate_all(constituents, available_symbols)
         
         if not is_valid:
+            logger.warning(f"ETF validation failed with {len(errors)} error(s): {errors}")
             # Return user-friendly error message with all issues
             error_detail = "ETF data validation failed:\n" + "\n".join(f"- {err}" for err in errors)
             raise HTTPException(status_code=400, detail=error_detail)
@@ -87,6 +96,8 @@ async def create_etf_analysis(file: UploadFile = File(...)) -> Dict[str, Any]:
         # 3. Calculate top 5 holdings
         top_holdings = calculator.get_top_holdings(constituents, top_n=5)
         
+        logger.info(f"ETF analysis completed: {len(constituents)} constituents, {len(time_series)} data points")
+        
         return {
             'status': 'success',
             'table_data': table_data,
@@ -97,6 +108,7 @@ async def create_etf_analysis(file: UploadFile = File(...)) -> Dict[str, Any]:
     except HTTPException:
         raise
     except Exception as e:
+        logger.error(f"Unexpected error in ETF analysis: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 

@@ -6,6 +6,9 @@ This service loads the historical prices CSV file at startup and keeps it in mem
 import pandas as pd
 from pathlib import Path
 from typing import Optional
+from api.utils.logger import setup_logger
+
+logger = setup_logger(__name__)
 
 
 class DataLoader:
@@ -44,8 +47,8 @@ class DataLoader:
         # Sort by date to ensure chronological order
         self._prices_df = self._prices_df.sort_values('DATE').reset_index(drop=True)
         
-        print(f"✓ Loaded {len(self._prices_df)} rows of price data")
-        print(f"✓ Date range: {self._prices_df['DATE'].min()} to {self._prices_df['DATE'].max()}")
+        logger.info(f"Loaded {len(self._prices_df)} rows of price data")
+        logger.info(f"Date range: {self._prices_df['DATE'].min()} to {self._prices_df['DATE'].max()}")
     
     def get_prices(self) -> pd.DataFrame:
         """

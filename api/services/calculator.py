@@ -6,6 +6,9 @@ Handles weighted sum calculations and top holdings analysis.
 import pandas as pd
 from typing import List, Dict, Any
 from .data_loader import DataLoader
+from api.utils.logger import setup_logger
+
+logger = setup_logger(__name__)
 
 
 class ETFCalculator:
@@ -45,7 +48,7 @@ class ETFCalculator:
                 # Add weighted price to ETF price
                 etf_prices['etf_price'] += prices_df[symbol] * weight
             else:
-                print(f"⚠ Warning: Symbol {symbol} not found in price data")
+                logger.warning(f"Symbol '{symbol}' not found in price data, skipping")
         
         return etf_prices
     
