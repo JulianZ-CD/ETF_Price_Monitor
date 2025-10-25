@@ -13,7 +13,8 @@ Available services:
 from .calculator import ETFCalculator
 from .data_loader import DataLoader
 from .validator import ETFValidator
+from .etf_parser import ETFDataParser
 
 # Define what gets imported with "from api.services import *"
-__all__ = ['ETFCalculator', 'DataLoader', 'ETFValidator']
+__all__ = ['ETFCalculator', 'DataLoader', 'ETFValidator', 'ETFDataParser']
 
