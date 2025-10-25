@@ -1,6 +1,6 @@
 "use client";
 
-import { TopHoldingData } from "@/lib/types";
+import { TopHoldingData } from "@/app/lib/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
