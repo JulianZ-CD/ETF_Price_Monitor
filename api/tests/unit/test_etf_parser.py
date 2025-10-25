@@ -93,6 +93,33 @@ class TestCSVFormatValidation:
             parser.parse_csv_file(csv_content, "empty.csv")
         
         assert "empty" in str(exc_info.value).lower()
+    
+    def test_duplicate_column_names(self):
+        """Test rejection of CSV with duplicate column names."""
+        parser = ETFDataParser()
+        # CSV with duplicate 'name' column
+        csv_content = b"name,weight,name\nA,0.3,X\nB,0.4,Y\nC,0.3,Z"
+        
+        with pytest.raises(ValueError) as exc_info:
+            parser.parse_csv_file(csv_content, "test.csv")
+        
+        error_msg = str(exc_info.value)
+        assert "duplicate" in error_msg.lower()
+        assert "name" in error_msg
+    
+    def test_multiple_duplicate_columns(self):
+        """Test rejection of CSV with multiple duplicate columns."""
+        parser = ETFDataParser()
+        # CSV with duplicate 'name' and 'weight' columns
+        csv_content = b"name,weight,name,weight\nA,0.5,X,0.5"
+        
+        with pytest.raises(ValueError) as exc_info:
+            parser.parse_csv_file(csv_content, "test.csv")
+        
+        error_msg = str(exc_info.value)
+        assert "duplicate" in error_msg.lower()
+        # Should mention both duplicated columns
+        assert "name" in error_msg or "weight" in error_msg
 
 
 class TestWeightTypeConversion:

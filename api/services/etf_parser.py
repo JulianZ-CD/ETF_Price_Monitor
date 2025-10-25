@@ -29,8 +29,10 @@ class ETFDataParser:
         
         This method handles:
         1. CSV parsing
-        2. Column validation (name, weight)
-        3. Data type conversion (weight to float)
+        2. Duplicate column name detection
+        3. Required column validation (name, weight)
+        4. Empty data check
+        5. Data type conversion (weight to float)
         
         Args:
             content: Raw file content in bytes
@@ -52,7 +54,19 @@ class ETFDataParser:
             logger.error(f"Failed to parse CSV: {str(e)}")
             raise ValueError(f"Invalid CSV format: {str(e)}")
         
-        # Step 2: Validate required columns
+        # Step 2: Check for duplicate column names
+        # Pandas auto-renames duplicates (e.g., 'name' -> 'name.1')
+        duplicate_indicators = [col for col in df.columns if '.' in str(col) and str(col).split('.')[-1].isdigit()]
+        if duplicate_indicators:
+            # Extract original column names by removing the .N suffix
+            original_names = [col.rsplit('.', 1)[0] for col in duplicate_indicators]
+            logger.warning(f"Duplicate column names detected: {original_names}")
+            raise ValueError(
+                f"CSV contains duplicate column names: {', '.join(set(original_names))}. "
+                f"Each column name must be unique."
+            )
+        
+        # Step 3: Validate required columns
         required_columns = {'name', 'weight'}
         actual_columns = set(df.columns)
         
@@ -64,15 +78,15 @@ class ETFDataParser:
                 f"Found: {list(actual_columns)}"
             )
         
-        # Step 3: Check for empty data
+        # Step 4: Check for empty data
         if len(df) == 0:
             logger.warning("CSV file contains no data rows")
             raise ValueError("CSV file is empty")
         
-        # Step 4: Convert to list of dicts
+        # Step 5: Convert to list of dicts
         constituents = df[['name', 'weight']].to_dict('records')
         
-        # Step 5: Convert weights to float
+        # Step 6: Convert weights to float
         try:
             for constituent in constituents:
                 constituent['weight'] = float(constituent['weight'])

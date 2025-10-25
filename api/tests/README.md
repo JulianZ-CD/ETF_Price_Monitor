@@ -1,6 +1,6 @@
 # Backend Test Suite
 
-✅ **95 tests** | 100% passing | 65 unit + 30 integration
+✅ 97 tests | 100% passing | 67 unit + 30 integration
 
 ## Quick Start
 
@@ -28,11 +28,11 @@ api/tests/
 │   ├── test_prices.csv      # Small price dataset (5 stocks, 5 days)
 │   ├── test_etf_valid.csv   # Valid ETF configuration
 │   └── test_etf_invalid.csv # Invalid data for error testing
-├── unit/                    # Unit tests (65 tests)
+├── unit/                    # Unit tests (67 tests)
 │   ├── test_data_loader.py  # DataLoader class (9 tests)
 │   ├── test_calculator.py   # ETFCalculator class (17 tests)
 │   ├── test_validator.py    # ETFValidator class (22 tests)
-│   └── test_etf_parser.py   # ETFDataParser class (17 tests)
+│   └── test_etf_parser.py   # ETFDataParser class (19 tests)
 └── integration/             # Integration tests (30 tests)
     ├── test_api.py          # API endpoints (14 tests)
     └── test_validation_api.py # API validation (16 tests)
@@ -42,7 +42,7 @@ api/tests/
 
 ## Test Coverage
 
-### Unit Tests (65 tests)
+### Unit Tests (67 tests)
 
 #### DataLoader (9 tests)
 - Singleton pattern behavior
@@ -67,9 +67,10 @@ api/tests/
 - Comprehensive validate_all integration
 - Tolerance configuration
 
-#### ETFDataParser (17 tests)
+#### ETFDataParser (19 tests)
 - CSV format parsing and validation
 - Required column checking (name, weight)
+- Duplicate column name detection
 - Type conversion (weights to float)
 - Error handling (malformed CSV, invalid data)
 - Edge cases (empty files, whitespace, large datasets)
@@ -142,12 +143,13 @@ pytest api/tests/ --cov=api --cov-report=html
 ## What These Tests Catch
 
 ### Problems Found & Fixed
-1. ✅ **Unknown symbols**: Now rejected with clear error (was just logged)
-2. ✅ **Invalid weights**: Sum must equal 1.0 ±0.5% (was accepted silently)
-3. ✅ **Weight range**: Must be 0-1 (negative/over 1 now rejected)
-4. ✅ **Empty data**: Now explicitly rejected (was returning zeros)
-5. ✅ **Duplicate symbols**: Now detected and rejected with clear error message
-6. ✅ **CSV format errors**: Parser validates format before business logic runs
+1. ✅ Unknown symbols: Now rejected with clear error (was just logged)
+2. ✅ Invalid weights: Sum must equal 1.0 ±0.5% (was accepted silently)
+3. ✅ Weight range: Must be 0-1 (negative/over 1 now rejected)
+4. ✅ Empty data: Now explicitly rejected (was returning zeros)
+5. ✅ Duplicate symbols: Now detected and rejected with clear error message
+6. ✅ Duplicate column names: CSV with duplicate headers now rejected
+7. ✅ CSV format errors: Parser validates format before business logic runs
 
 ### Services Added
 - `ETFValidator` service for comprehensive data quality checks
