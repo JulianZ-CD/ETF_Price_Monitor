@@ -218,15 +218,17 @@ file: ETF[1-2].csv
 
 ## Configuration
 
-The backend supports configuration via environment variables. Copy `.env.example` to `.env` and customize:
+The backend supports configuration via environment variables. Create `.env.dev` (development) or `.env.prod` (production):
 
 ```bash
-# ETF Validation Settings
-ETF_WEIGHT_TOLERANCE=0.005  # 0.5% tolerance for weight sum validation
+# Copy example and customize
+cp .env.example .env.dev
+
+# Available settings
+ETF_WEIGHT_TOLERANCE=0.005  # Weight sum tolerance (default: 0.5%)
 ```
 
-**Available Settings:**
-- `ETF_WEIGHT_TOLERANCE` (default: `0.005`): Acceptable deviation for constituent weight sum from 1.0
+**Priority:** `ENV_FILE` env var → `.env.dev` → `.env.prod` → `.env` → defaults
 
 ---
 
@@ -256,6 +258,8 @@ ETF_Price_Monitor/
 │   │   ├── data_loader.py    # Singleton data cache
 │   │   ├── calculator.py     # ETF calculations
 │   │   └── validator.py      # Data validation
+│   ├── utils/                # Utility modules
+│   │   └── logger.py         # Logging utilities
 │   └── tests/                # Backend test suite
 │       ├── unit/             # Unit tests
 │       └── integration/      # Integration tests

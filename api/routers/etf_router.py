@@ -8,7 +8,7 @@ import pandas as pd
 import io
 from typing import Dict, Any
 from api.services import DataLoader, ETFCalculator, ETFValidator
-from api.config import ETF_WEIGHT_TOLERANCE
+from api.utils.config import ETF_WEIGHT_TOLERANCE
 
 # Create router instance with API versioning
 
