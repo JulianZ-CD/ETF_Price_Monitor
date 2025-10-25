@@ -75,38 +75,49 @@ This single command will:
 - **Pandas** - Data manipulation and analysis
 - **Uvicorn** - ASGI server for FastAPI
 
-### System Design
+### System Architecture
 
+```mermaid
+graph TD
+    %% Frontend Layer
+    subgraph Frontend[Frontend - Next.js]
+        A[Client Application]
+        subgraph UI[UI Components]
+            A1[FileUpload]
+            A2[ETFTable]
+            A3[TimeSeriesChart]
+            A4[TopHoldingsChart]
+        end
+        A --- UI
+    end
+
+    %% Backend Layer
+    subgraph Backend[Backend - FastAPI]
+        B[API Router]
+        subgraph Services[Service Layer]
+            C1[ETFDataParser<br/>Format Validation]
+            C2[ETFValidator<br/>Business Rules]
+            C3[ETFCalculator<br/>Price Calculation]
+        end
+        D[DataLoader<br/>Singleton Cache]
+    end
+
+    %% Data Layer
+    subgraph Data[Data Storage]
+        E1[(prices.csv<br/>Historical Data)]
+        E2[(ETF CSV<br/>User Upload)]
+    end
+
+    %% Connections
+    E2 -->|Upload| Frontend
+    Frontend -->|HTTP POST| B
+    B -->|1. Parse & Validate| C1
+    C1 -->|2. Validate Rules| C2
+    C2 -->|3. Calculate| C3
+    C3 -->|Query Data| D
+    D -->|Load at Startup| E1
+    B -->|JSON Response| Frontend
 ```
-┌─────────────────────────────────────────┐
-│  Browser (Next.js Frontend)             │
-│  ├─ FileUpload Component                │
-│  ├─ ETFTable (sortable, paginated)      │
-│  ├─ TimeSeriesChart (zoomable)          │
-│  └─ TopHoldingsChart                    │
-└────────────┬────────────────────────────┘
-             │ HTTP/REST
-             ▼
-┌─────────────────────────────────────────┐
-│  FastAPI Backend                         │
-│  ├─ POST /api/py/v1/etfs                │
-│  │   ├─ Validate CSV format             │
-│  │   ├─ Calculate ETF prices            │
-│  │   └─ Compute top holdings            │
-│  └─ GET /api/py/v1/health               │
-└────────────┬────────────────────────────┘
-             ▼
-┌─────────────────────────────────────────┐
-│  Data Layer (Pandas)                     │
-│  ├─ prices.csv (cached at startup)      │
-│  ├─ ETF calculation service             │
-│  └─ Historical price lookup             │
-└─────────────────────────────────────────┘
-```
-
----
-
-## Core Logic
 
 ### ETF Price Calculation
 ```
@@ -125,45 +136,6 @@ holding_value_i = weight_i × latest_price_i
 
 ---
 
-## API Documentation
-
-### `POST /api/py/v1/etfs`
-
-**Request**: `multipart/form-data`
-```
-file: ETF[1-2].csv
-```
-
-**Response**: `application/json`
-```json
-{
-  "status": "success",
-  "table_data": [
-    {
-      "symbol": "A",
-      "weight": 0.02,
-      "latest_price": 20.05
-    }
-  ],
-  "time_series": [
-    {
-      "date": "2017-01-01",
-      "price": 150.23
-    }
-  ],
-  "top_holdings": [
-    {
-      "symbol": "B",
-      "weight": 0.15,
-      "latest_price": 50.25,
-      "holding_value": 7.5375
-    }
-  ]
-}
-```
-
----
-
 ## Design Decisions
 
 ### 1. Frontend Architecture
@@ -174,7 +146,7 @@ file: ETF[1-2].csv
 ### 2. Backend Architecture
 - **Modular Structure**: Separated routers, services, and data layers
 - **Data Caching**: `prices.csv` loaded once at startup (100 rows cached in memory)
-- **Dependency Injection**: Services instantiated via FastAPI's DI system
+- **Service Singletons**: Services instantiated once at module import time and reused across requests
 
 ### 3. Data Processing
 - **Stateless API**: No session storage; ETF config provided with each request
@@ -315,7 +287,6 @@ To test the application manually:
    - All charts and tables are interactive
 
 ### Automated Backend Tests
-**72 tests** covering all backend functionality (unit + integration tests)
 
 ```bash
 # Run all tests
