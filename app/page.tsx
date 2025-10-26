@@ -5,6 +5,7 @@ import { FileUpload } from "@/components/FileUpload";
 import { ETFTable } from "@/components/ETFTable";
 import { TimeSeriesChart } from "@/components/TimeSeriesChart";
 import { TopHoldingsChart } from "@/components/TopHoldingsChart";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { ETFDataResponse } from "@/app/lib/types";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, CheckCircle2, Upload } from "lucide-react";
@@ -39,10 +40,15 @@ export default function Home() {
       {/* Header */}
       <div className="border-b">
         <div className="container mx-auto px-4 py-6">
-          <h1 className="text-3xl font-bold tracking-tight">ETF Price Monitor</h1>
-          <p className="text-muted-foreground mt-2">
-            Upload ETF configuration to view historical prices and top holdings
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight">ETF Price Monitor</h1>
+              <p className="text-muted-foreground mt-2">
+                Upload ETF configuration to view historical prices and top holdings
+              </p>
+            </div>
+            <ThemeToggle />
+          </div>
         </div>
       </div>
 
@@ -57,8 +63,8 @@ export default function Home() {
 
           {/* Success Message */}
           {success && (
-            <Alert className="border-green-200 bg-green-50 text-green-900">
-              <CheckCircle2 className="h-4 w-4 text-green-600" />
+            <Alert className="border-green-200 bg-green-50 text-green-900 dark:border-green-800 dark:bg-green-950 dark:text-green-100">
+              <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
               <AlertDescription>{success}</AlertDescription>
             </Alert>
           )}
