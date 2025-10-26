@@ -4,11 +4,52 @@ A single-page web application for viewing historical ETF prices and analyzing to
 
 ## Quick Start
 
-### Prerequisites
-- **Node.js** 18+ and **npm**
-- **Python** 3.10+
+### Option 1: Docker with Pre-built Images
 
-### Installation & Running
+**Prerequisites:** Docker and Docker Compose
+
+1. **Clone and navigate to the project**
+```bash
+cd ETF_Price_Monitor
+```
+
+1. **Pull pre-built images and start**
+```bash
+docker-compose pull
+docker-compose up
+```
+
+1. **Access the application**
+- Frontend: [http://localhost:3000](http://localhost:3000)
+- Backend API: [http://localhost:8000/api/py/docs](http://localhost:8000/api/py/docs)
+
+1. **Stop the application**
+```bash
+docker-compose down
+```
+
+**Startup time:** ~5-10 seconds ⚡
+
+**Available images:**
+- Backend: `ghcr.io/julianz-cd/etf_price_monitor-backend:latest`
+- Frontend: `ghcr.io/julianz-cd/etf_price_monitor-frontend:latest`
+
+---
+
+### Option 2: Docker with Local Build
+
+If you want to build from source or modify the code:
+
+```bash
+# Build and start
+docker-compose up --build
+```
+
+---
+
+### Option 3: Local Development
+
+**Prerequisites:** Node.js 20+, Python 3.10+, and npm
 
 1. **Clone and navigate to the project**
 ```bash
@@ -269,7 +310,6 @@ ETF_Price_Monitor/
 - **Multiple ETF Comparison**: Side-by-side analysis
 - **Performance Metrics**: Calculate Sharpe ratio, volatility, etc.
 - **Date Range Selection**: Custom time period filtering
-- **Dockerization**: Container-based deployment
 
 ---
 
