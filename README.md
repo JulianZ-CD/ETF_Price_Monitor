@@ -188,6 +188,9 @@ The application validates all uploaded CSV files to ensure data integrity:
 git clone https://github.com/JulianZ-CD/ETF_Price_Monitor
 cd ETF_Price_Monitor
 
+# Login GitHub Registry (if not already)
+docker login ghcr.io
+
 # Start with production config (uses pre-built images)
 docker-compose -f docker-compose.prod.yml up
 ```
