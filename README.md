@@ -99,9 +99,10 @@ ETF_Price_Monitor/
 ├── data/                     # Sample CSV files
 │   ├── ETF1.csv, ETF2.csv    # Sample ETF configurations
 │   └── prices.csv            # Historical price data
-├── docker-compose.yml        # Multi-container orchestration
-├── Dockerfile.backend        # Backend container
-├── Dockerfile.frontend       # Frontend container
+├── docker-compose.yml        # Docker orchestration (local build)
+├── docker-compose.prod.yml   # Production config (pre-built images)
+├── Dockerfile.backend        # Backend container definition
+├── Dockerfile.frontend       # Frontend container definition
 ├── nginx.conf                # Nginx reverse proxy config
 ├── package.json              # Node.js dependencies
 └── requirements.txt          # Python dependencies
@@ -182,42 +183,49 @@ The application validates all uploaded CSV files to ensure data integrity:
 
 **Prerequisites:** Docker and Docker Compose
 
-1. **Clone and navigate to the project**
 ```bash
+# Clone repository
+git clone https://github.com/JulianZ-CD/ETF_Price_Monitor
 cd ETF_Price_Monitor
+
+# Start with production config (uses pre-built images)
+docker-compose -f docker-compose.prod.yml up
 ```
 
-1. **Pull pre-built images and start**
-```bash
-docker-compose pull
-docker-compose up
-```
-
-1. **Access the application**
+**Access:**
 - Frontend: [http://localhost](http://localhost)
 - API Docs: [http://localhost/api/py/docs](http://localhost/api/py/docs)
 
-1. **Stop the application**
-```bash
-docker-compose down
-```
+**Stop:** `docker-compose -f docker-compose.prod.yml down`
 
-**Available images:**
-- Backend: `ghcr.io/julianz-cd/etf_price_monitor-backend:latest`
-- Frontend: `ghcr.io/julianz-cd/etf_price_monitor-frontend:latest`
+---
 
 ### Option 2: Docker with Local Build
 
-If you want to build from source or modify the code:
+**Prerequisites:** Docker and Docker Compose
 
 ```bash
-# Build and start
+# Clone repository
+git clone https://github.com/JulianZ-CD/ETF_Price_Monitor
+cd ETF_Price_Monitor
+
+# Build and start (default config)
 docker-compose up --build
 ```
+
+**Access:**
+- Frontend: [http://localhost](http://localhost)
+- API Docs: [http://localhost/api/py/docs](http://localhost/api/py/docs)
+
+**Stop:** `docker-compose down`
+
+---
 
 ### Option 3: Local Development
 
 **Prerequisites:** Node.js 20+, Python 3.10+, and npm
+
+Run without Docker for development with hot reload:
 
 1. **Clone and navigate to the project**
 ```bash

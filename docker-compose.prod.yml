@@ -1,3 +1,6 @@
+# Production configuration - uses pre-built images only
+# No local build required, fastest startup
+
 services:
   # Nginx reverse proxy
   nginx:
@@ -14,13 +17,9 @@ services:
   # Backend service - FastAPI application
   backend:
     image: ghcr.io/julianz-cd/etf_price_monitor-backend:latest
-    build:
-      context: .
-      dockerfile: Dockerfile.backend
     expose:
       - "8000"
     volumes:
-      # Mount data directory for historical prices
       - ./data:/app/data:ro
     healthcheck:
       test:
@@ -39,20 +38,13 @@ services:
   # Frontend service - Next.js application
   frontend:
     image: ghcr.io/julianz-cd/etf_price_monitor-frontend:latest
-    build:
-      context: .
-      dockerfile: Dockerfile.frontend
-      args:
-        # Pass build arguments for Next.js build process
-        DOCKER_ENV: "true"
-        DEPLOYMENT_MODE: "multi"
     expose:
       - "3000"
     environment:
-      # Runtime environment variables for Next.js rewrites
       - DOCKER_ENV=true
       - DEPLOYMENT_MODE=multi
     depends_on:
       backend:
         condition: service_healthy
     restart: unless-stopped
+
