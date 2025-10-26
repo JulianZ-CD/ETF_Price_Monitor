@@ -1,0 +1,55 @@
+# Stage 1: Build the Next.js application
+FROM node:20-alpine AS builder
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm ci
+
+# Copy source code
+COPY app/ ./app/
+COPY components/ ./components/
+COPY next.config.js .
+COPY tsconfig.json .
+COPY tailwind.config.js .
+COPY postcss.config.js .
+COPY components.json .
+
+# Set build-time environment variables
+# These will be available during `npm run build`
+ARG DOCKER_ENV=true
+ARG DEPLOYMENT_MODE=multi
+ENV DOCKER_ENV=${DOCKER_ENV}
+ENV DEPLOYMENT_MODE=${DEPLOYMENT_MODE}
+
+# Build Next.js application for production
+RUN npm run build
+
+# Stage 2: Run the application
+FROM node:20-alpine AS runner
+
+WORKDIR /app
+
+# Copy necessary files from builder
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/next.config.js ./
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/node_modules ./node_modules
+
+# Expose port for Next.js
+EXPOSE 3000
+
+# Set environment to production
+ENV NODE_ENV=production
+
+# Runtime environment variables (can be overridden by docker-compose)
+ENV DOCKER_ENV=true
+ENV DEPLOYMENT_MODE=multi
+
+# Start Next.js server
+CMD ["npm", "start"]
+

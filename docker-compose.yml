@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  # Backend service - FastAPI application
+  backend:
+    image: ghcr.io/julianz-cd/etf_price_monitor-backend:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    ports:
+      - "8000:8000"
+    volumes:
+      # Mount data directory for historical prices
+      - ./data:/app/data:ro
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/py')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  # Frontend service - Next.js application
+  frontend:
+    image: ghcr.io/julianz-cd/etf_price_monitor-frontend:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+      args:
+        # Pass build arguments for Next.js build process
+        DOCKER_ENV: "true"
+        DEPLOYMENT_MODE: "multi"
+    ports:
+      - "3000:3000"
+    environment:
+      # Runtime environment variables for Next.js rewrites
+      - DOCKER_ENV=true
+      - DEPLOYMENT_MODE=multi
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
