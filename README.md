@@ -2,93 +2,6 @@
 
 A single-page web application for viewing historical ETF prices and analyzing top holdings.
 
-## Quick Start
-
-### Option 1: Docker with Pre-built Images
-
-**Prerequisites:** Docker and Docker Compose
-
-1. **Clone and navigate to the project**
-```bash
-cd ETF_Price_Monitor
-```
-
-1. **Pull pre-built images and start**
-```bash
-docker-compose pull
-docker-compose up
-```
-
-1. **Access the application**
-- Frontend: [http://localhost](http://localhost)
-- API Docs: [http://localhost/api/py/docs](http://localhost/api/py/docs)
-
-1. **Stop the application**
-```bash
-docker-compose down
-```
-
-**Startup time:** ~5-10 seconds ⚡
-
-**Available images:**
-- Backend: `ghcr.io/julianz-cd/etf_price_monitor-backend:latest`
-- Frontend: `ghcr.io/julianz-cd/etf_price_monitor-frontend:latest`
-
----
-
-### Option 2: Docker with Local Build
-
-If you want to build from source or modify the code:
-
-```bash
-# Build and start
-docker-compose up --build
-```
-
----
-
-### Option 3: Local Development
-
-**Prerequisites:** Node.js 20+, Python 3.10+, and npm
-
-1. **Clone and navigate to the project**
-```bash
-cd ETF_Price_Monitor
-```
-
-2. **Set up Python virtual environment**
-```bash
-python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
-
-3. **(Optional) Configure environment variables**
-```bash
-# Copy example file and customize if needed
-cp .env.example .env
-# Edit .env to change settings (e.g., ETF_WEIGHT_TOLERANCE)
-```
-
-4. **Install all dependencies and start development servers**
-```bash
-npm install
-npm run dev
-```
-
-This single command will:
-- Install Python dependencies from `requirements.txt`
-- Install Node.js dependencies
-- Start FastAPI backend on port 8000
-- Start Next.js frontend on port 3000
-
-5. **Access the application**
-- Frontend: [http://localhost:3000](http://localhost:3000)
-- API Docs: [http://localhost:8000/api/py/docs](http://localhost:8000/api/py/docs)
-
-**Note:** Local development uses separate ports. Docker deployment uses Nginx on port 80.
-
----
-
 ## Features
 
 ### Implemented Requirements
@@ -99,8 +12,6 @@ This single command will:
   - Pagination (10 items per page)
 - **Time Series Chart**: Zoomable line chart showing reconstructed ETF price history
 - **Top 5 Holdings**: Bar chart displaying largest holdings by market value (weight × price)
-
----
 
 ## Architecture
 
@@ -196,23 +107,6 @@ ETF_Price_Monitor/
 └── requirements.txt          # Python dependencies
 ```
 
-### ETF Price Calculation
-```
-ETF_price(t) = Σ (weight_i × constituent_price_i(t))
-```
-
-### Holding Value Calculation
-```
-holding_value_i = weight_i × latest_price_i
-```
-
-### Data Processing
-- **Forward-fill** missing prices with last known value
-- **Backward-fill** any remaining leading NaN values
-- Constituents matched by symbol name across datasets
-
----
-
 ## Design Decisions
 
 ### 1. Frontend Architecture
@@ -235,9 +129,9 @@ holding_value_i = weight_i × latest_price_i
 - **Interactive Elements**: Sortable tables, paginated views, zoomable charts
 - **Feedback**: Success/error alerts with auto-dismiss
 
----
-
 ## Assumptions
+
+The following assumptions were made to complete the challenge within scope. These represent decisions made given limited requirements and serve as discussion points for the technical review.
 
 ### 1. Data Quality (About Provided Data)
 We assume the provided `prices.csv` data is:
@@ -248,9 +142,17 @@ We assume the provided `prices.csv` data is:
 
 ### 2. Business Logic
 - **Static Weights**: ETF constituent weights remain constant over the entire time period
-- **Holding Value Calculation**: Holding value = weight × latest closing price (not market capitalization)
+- **ETF Price Calculation**:
+  ```
+  ETF_price(t) = Σ (weight_i × constituent_price_i(t))
+  ```
+  The ETF price at any time is the weighted sum of all constituent prices
+- **Holding Value Calculation**:
+  ```
+  holding_value_i = weight_i × latest_price_i
+  ```
+  Holding value = weight × latest closing price (not market capitalization)
 - **Latest Price Definition**: "Latest price" refers to the most recent date available in `prices.csv`
-- **ETF Price Formula**: ETF price = Σ(constituent_price × weight) for all constituents
 
 ### 3. Input Validation (What We Verify)
 The application validates all uploaded CSV files to ensure data integrity:
@@ -274,7 +176,79 @@ The application validates all uploaded CSV files to ensure data integrity:
 - **Memory Assumption**: Historical data size (~100 rows × 40 constituents) fits comfortably in memory
 - **Configuration**: Runtime settings managed via environment variables (`.env` files or system environment)
 
----
+## Quick Start
+
+### Option 1: Docker with Pre-built Images (Recommended)
+
+**Prerequisites:** Docker and Docker Compose
+
+1. **Clone and navigate to the project**
+```bash
+cd ETF_Price_Monitor
+```
+
+1. **Pull pre-built images and start**
+```bash
+docker-compose pull
+docker-compose up
+```
+
+1. **Access the application**
+- Frontend: [http://localhost](http://localhost)
+- API Docs: [http://localhost/api/py/docs](http://localhost/api/py/docs)
+
+1. **Stop the application**
+```bash
+docker-compose down
+```
+
+**Available images:**
+- Backend: `ghcr.io/julianz-cd/etf_price_monitor-backend:latest`
+- Frontend: `ghcr.io/julianz-cd/etf_price_monitor-frontend:latest`
+
+### Option 2: Docker with Local Build
+
+If you want to build from source or modify the code:
+
+```bash
+# Build and start
+docker-compose up --build
+```
+
+### Option 3: Local Development
+
+**Prerequisites:** Node.js 20+, Python 3.10+, and npm
+
+1. **Clone and navigate to the project**
+```bash
+cd ETF_Price_Monitor
+```
+
+2. **Set up Python virtual environment**
+```bash
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
+
+3. **(Optional) Configure environment variables**
+```bash
+# Copy example file and customize if needed
+cp .env.example .env
+# Edit .env to change settings (e.g., ETF_WEIGHT_TOLERANCE)
+```
+
+4. **Install all dependencies and start development servers**
+```bash
+npm install
+npm run dev
+```
+
+5. **Access the application**
+- Frontend: [http://localhost:3000](http://localhost:3000)
+- API Docs: [http://localhost:8000/api/py/docs](http://localhost:8000/api/py/docs)
+
+**Note:** Local development uses separate ports. Docker deployment uses Nginx on port 80.
+
 
 ## Configuration
 
@@ -290,7 +264,29 @@ ETF_WEIGHT_TOLERANCE=0.005  # Weight sum tolerance (default: 0.5%)
 
 **Priority:** `ENV_FILE` env var → `.env.dev` → `.env.prod` → `.env` → defaults
 
----
+## Testing
+
+### Usage Guide
+To explore the application:
+1. Start the application (see [Quick Start](#quick-start))
+2. Upload a sample ETF file (`data/ETF1.csv` or `data/ETF2.csv`)
+3. Explore the visualizations:
+   - **Interactive Table**: Sort by any column (symbol, weight, price), navigate with pagination
+   - **Time Series Chart**: Zoom and pan to explore ETF price trends (2017-01-01 to 2017-04-10)
+   - **Top 5 Holdings**: View largest positions by market value (weight × price)
+
+### Automated Tests
+**Backend Test Coverage: 99%** - Comprehensive unit and integration tests covering all backend functionality
+
+```bash
+# Run all tests
+pytest api/tests/
+
+# Run with coverage report
+pytest api/tests/ --cov=api --cov-report=term
+```
+
+For detailed testing documentation, see [`api/tests/README.md`](api/tests/README.md)
 
 ## Future Enhancements
 
@@ -305,31 +301,3 @@ ETF_WEIGHT_TOLERANCE=0.005  # Weight sum tolerance (default: 0.5%)
 - **Multiple ETF Comparison**: Side-by-side analysis
 - **Performance Metrics**: Calculate Sharpe ratio, volatility, etc.
 - **Date Range Selection**: Custom time period filtering
-
----
-
-## Testing
-
-### Manual Testing
-To test the application manually:
-1. Start the development server with `npm run dev`
-2. Navigate to `http://localhost:3000`
-3. Upload `data/ETF1.csv` or `data/ETF2.csv`
-4. Verify:
-   - Table displays all constituents with correct data
-   - Time series chart shows ETF price from 2017-01-01 to 2017-04-10
-   - Top 5 bar chart displays correct holdings sorted by value
-   - All charts and tables are interactive
-
-### Automated Backend Tests
-**99% coverage**: covering all backend functionality (unit + integration tests)
-
-```bash
-# Run all tests
-pytest api/tests/
-
-# Run with coverage report
-pytest api/tests/ --cov=api --cov-report=term
-```
-
-For detailed testing documentation, see [`api/tests/README.md`](api/tests/README.md)
