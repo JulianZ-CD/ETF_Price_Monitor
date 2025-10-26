@@ -20,8 +20,8 @@ docker-compose up
 ```
 
 1. **Access the application**
-- Frontend: [http://localhost:3000](http://localhost:3000)
-- Backend API: [http://localhost:8000/api/py/docs](http://localhost:8000/api/py/docs)
+- Frontend: [http://localhost](http://localhost)
+- API Docs: [http://localhost/api/py/docs](http://localhost/api/py/docs)
 
 1. **Stop the application**
 ```bash
@@ -83,7 +83,9 @@ This single command will:
 
 5. **Access the application**
 - Frontend: [http://localhost:3000](http://localhost:3000)
-- Backend API: [http://localhost:8000/api/py/docs](http://localhost:8000/api/py/docs)
+- API Docs: [http://localhost:8000/api/py/docs](http://localhost:8000/api/py/docs)
+
+**Note:** Local development uses separate ports. Docker deployment uses Nginx on port 80.
 
 ---
 
@@ -105,7 +107,7 @@ This single command will:
 ### Technology Stack
 
 **Frontend**
-- **Next.js 16** (App Router) - React framework with SSR capabilities
+- **Next.js** (App Router) - React framework with SSR capabilities
 - **TypeScript** - Type safety and better developer experience
 - **shadcn/ui** - Modern, accessible UI components
 - **Recharts** - Declarative charting library for React
@@ -116,10 +118,20 @@ This single command will:
 - **Pandas** - Data manipulation and analysis
 - **Uvicorn** - ASGI server for FastAPI
 
+**Infrastructure**
+- **Nginx** - Reverse proxy and load balancer
+- **Docker** - Containerization platform
+- **Docker Compose** - Multi-container orchestration
+
 ### System Architecture
 
 ```mermaid
 graph TD
+    Client[Browser] -->|:80| Nginx[Nginx Reverse Proxy]
+    
+    Nginx -->|/ → :3000| Frontend
+    Nginx -->|/api → :8000| Backend
+
     %% Frontend Layer
     subgraph Frontend[Frontend - Next.js]
         A[Client Application]
@@ -158,6 +170,30 @@ graph TD
     C3 -->|Query Data| D
     D -->|Load at Startup| E1
     B -->|JSON Response| Frontend
+```
+
+### Project Structure
+
+```
+ETF_Price_Monitor/
+├── app/                      # Next.js frontend (pages, layout, styles)
+│   ├── page.tsx              # Main application page
+│   └── lib/                  # TypeScript utilities and types
+├── components/               # React UI components
+├── api/                      # FastAPI backend
+│   ├── index.py              # Main app entry
+│   ├── routers/              # API endpoints
+│   ├── services/             # Business logic
+│   └── tests/                # Test suite (99% coverage)
+├── data/                     # Sample CSV files
+│   ├── ETF1.csv, ETF2.csv    # Sample ETF configurations
+│   └── prices.csv            # Historical price data
+├── docker-compose.yml        # Multi-container orchestration
+├── Dockerfile.backend        # Backend container
+├── Dockerfile.frontend       # Frontend container
+├── nginx.conf                # Nginx reverse proxy config
+├── package.json              # Node.js dependencies
+└── requirements.txt          # Python dependencies
 ```
 
 ### ETF Price Calculation
@@ -253,47 +289,6 @@ ETF_WEIGHT_TOLERANCE=0.005  # Weight sum tolerance (default: 0.5%)
 ```
 
 **Priority:** `ENV_FILE` env var → `.env.dev` → `.env.prod` → `.env` → defaults
-
----
-
-## Project Structure
-
-```
-ETF_Price_Monitor/
-├── app/                      # Next.js frontend
-│   ├── page.tsx              # Main application page
-│   ├── layout.tsx            # Root layout with metadata
-│   └── globals.css           # Global styles and theme
-├── components/               # React components
-│   ├── FileUpload.tsx        # CSV upload component
-│   ├── ETFTable.tsx          # Interactive data table
-│   ├── TimeSeriesChart.tsx   # Zoomable line chart
-│   ├── TopHoldingsChart.tsx  # Bar chart for top 5
-│   └── ui/                   # shadcn/ui components
-├── lib/                      # Utilities and types
-│   ├── types.ts              # TypeScript interfaces
-│   └── utils.ts              # Helper functions
-├── api/                      # FastAPI backend
-│   ├── index.py              # Main FastAPI app
-│   ├── config.py             # Configuration settings
-│   ├── routers/              # API route handlers
-│   │   └── etf_router.py     # ETF endpoints
-│   ├── services/             # Business logic
-│   │   ├── data_loader.py    # Singleton data cache
-│   │   ├── calculator.py     # ETF calculations
-│   │   └── validator.py      # Data validation
-│   ├── utils/                # Utility modules
-│   │   └── logger.py         # Logging utilities
-│   └── tests/                # Backend test suite
-│       ├── unit/             # Unit tests
-│       └── integration/      # Integration tests
-├── data/                     # Sample data
-│   ├── ETF1.csv              # Sample ETF config
-│   ├── ETF2.csv              # Sample ETF config
-│   └── prices.csv            # Historical prices
-├── .env.example              # Environment variables template
-└── requirements.txt          # Python dependencies
-```
 
 ---
 
