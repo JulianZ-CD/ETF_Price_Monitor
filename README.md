@@ -118,7 +118,6 @@ ETF_Price_Monitor/
 ### 2. Backend Architecture
 - **Modular Structure**: Separated routers, services, and data layers
 - **Data Caching**: `prices.csv` loaded once at startup (100 rows cached in memory)
-- **Dependency Injection**: Services instantiated via FastAPI's DI system
 
 ### 3. Data Processing
 - **Stateless API**: No session storage; ETF config provided with each request
@@ -172,10 +171,8 @@ The application validates all uploaded CSV files to ensure data integrity:
 ### 4. Scope & Technical Constraints
 - **Single User**: No authentication or multi-user support required
 - **Stateless**: No data persistence; all data held in memory during session
-- **Development Mode**: Backend (port 8000) and frontend (port 3000) run separately
 - **CORS Enabled**: Cross-origin requests allowed for local development
 - **Memory Assumption**: Historical data size (~100 rows × 40 constituents) fits comfortably in memory
-- **Configuration**: Runtime settings managed via environment variables (`.env` files or system environment)
 
 ## Quick Start
 
@@ -279,7 +276,7 @@ ETF_WEIGHT_TOLERANCE=0.005  # Weight sum tolerance (default: 0.5%)
 
 ### Usage Guide
 To explore the application:
-1. Start the application (see [Quick Start](#quick-start))
+1. Start the application
 2. Upload a sample ETF file (`data/ETF1.csv` or `data/ETF2.csv`)
 3. Explore the visualizations:
    - **Interactive Table**: Sort by any column (symbol, weight, price), navigate with pagination
@@ -311,4 +308,3 @@ For detailed testing documentation, see [`api/tests/README.md`](api/tests/README
 - **Real-time Updates**: WebSocket for live price streaming
 - **Multiple ETF Comparison**: Side-by-side analysis
 - **Performance Metrics**: Calculate Sharpe ratio, volatility, etc.
-- **Date Range Selection**: Custom time period filtering
